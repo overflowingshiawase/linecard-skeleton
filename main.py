@@ -28,7 +28,7 @@ class CardCreateSchema(BaseModel):
     company: str | None = None
     phone: str | None = None
     email: EmailStr | None = None
-
+    photo_url: str | None = None
 
 @app.get("/")
 def health_check():
@@ -65,6 +65,7 @@ def view_card(slug: str):
     c = res.data[0]
     return f"""
     <html><body style="font-family:sans-serif;text-align:center;padding:40px;">
+        {f'<img src="{c.get("photo_url")}" style="width:120px;height:120px;border-radius:50%;object-fit:cover;">' if c.get('photo_url') else ''}
         <h1>{c.get('name')}</h1>
         <p>{c.get('title') or ''} @ {c.get('company') or ''}</p>
         <p>{c.get('phone') or ''} | {c.get('email') or ''}</p>

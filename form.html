@@ -6,18 +6,37 @@
   <input id="name" placeholder="姓名"><br><br>
   <input id="title" placeholder="職稱"><br><br>
   <input id="company" placeholder="公司"><br><br>
+  <label>大頭照：</label>
+  <input id="photo" type="file" accept="image/*"><br><br>
   <button onclick="submitCard()">建立</button>
   <p id="result"></p>
-
   <script>
     async function submitCard() {
+      document.getElementById('result').innerHTML = '處理中...';
+
+      // 步驟一：如果有選圖片，先上傳，拿回圖片網址
+      let photoUrl = null;
+      const photoFile = document.getElementById('photo').files[0];
+      if (photoFile) {
+        const formData = new FormData();
+        formData.append('file', photoFile);
+        const uploadRes = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        });
+        const uploadData = await uploadRes.json();
+        photoUrl = uploadData.url;
+      }
+
+      // 步驟二：把文字資料 + 圖片網址一起存進資料庫
       const body = {
         slug: document.getElementById('slug').value,
         name: document.getElementById('name').value,
         title: document.getElementById('title').value,
         company: document.getElementById('company').value,
+        photo_url: photoUrl,
       };
-      const res = await fetch('http://localhost:8000/api/cards', {
+      const res = await fetch('/api/cards', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(body)
@@ -25,7 +44,7 @@
       const data = await res.json();
       document.getElementById('result').innerHTML =
         data.success
-          ? `完成！<a href="http://localhost:8000/card/${body.slug}" target="_blank">點這裡查看</a>`
+          ? `完成！<a href="/card/${body.slug}" target="_blank">點這裡查看</a>`
           : '失敗';
     }
   </script>
