@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<body style="font-family:sans-serif;max-width:400px;margin:40px auto;">
+  <h2>建立我的名片</h2>
+  <input id="slug" placeholder="網址代號 (例如 marychen)"><br><br>
+  <input id="name" placeholder="姓名"><br><br>
+  <input id="title" placeholder="職稱"><br><br>
+  <input id="company" placeholder="公司"><br><br>
+  <button onclick="submitCard()">建立</button>
+  <p id="result"></p>
+
+  <script>
+    async function submitCard() {
+      const body = {
+        slug: document.getElementById('slug').value,
+        name: document.getElementById('name').value,
+        title: document.getElementById('title').value,
+        company: document.getElementById('company').value,
+      };
+      const res = await fetch('http://localhost:8000/api/cards', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      document.getElementById('result').innerHTML =
+        data.success
+          ? `完成！<a href="http://localhost:8000/card/${body.slug}" target="_blank">點這裡查看</a>`
+          : '失敗';
+    }
+  </script>
+</body>
+</html>
