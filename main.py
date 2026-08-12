@@ -1,11 +1,16 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-import os
+from fastapi.responses import HTMLResponse, FileResponse
+from pydantic import BaseModel, EmailStr
 from supabase import create_client, Client
 from dotenv import load_dotenv
+import os
+import uuid
 
 load_dotenv()
 supabase: Client = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
+
+BASE_URL = "https://web-production-4fe72.up.railway.app"
 
 app = FastAPI()
 app.add_middleware(
@@ -15,10 +20,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/")
-def health_check():
-    return {"status": "ok"}
-from pydantic import BaseModel, EmailStr
 
 class CardCreateSchema(BaseModel):
     slug: str
@@ -28,14 +29,23 @@ class CardCreateSchema(BaseModel):
     phone: str | None = None
     email: EmailStr | None = None
 
+
+@app.get("/")
+def health_check():
+    return {"status": "ok"}
+
+
+@app.get("/form")
+def form_page():
+    return FileResponse("form.html")
+
+
 @app.post("/api/cards")
 def create_card(card: CardCreateSchema):
     data = card.dict()
     response = supabase.table("cards").upsert(data, on_conflict="slug").execute()
     return {"success": True, "data": response.data}
 
-from fastapi import UploadFile, File
-import uuid
 
 @app.post("/api/upload")
 async def upload_photo(file: UploadFile = File(...)):
@@ -46,8 +56,6 @@ async def upload_photo(file: UploadFile = File(...)):
     public_url = supabase.storage.from_("avatars").get_public_url(file_path)
     return {"url": public_url}
 
-from fastapi.responses import HTMLResponse
-from fastapi import HTTPException
 
 @app.get("/card/{slug}", response_class=HTMLResponse)
 def view_card(slug: str):
@@ -60,7 +68,7 @@ def view_card(slug: str):
         <h1>{c.get('name')}</h1>
         <p>{c.get('title') or ''} @ {c.get('company') or ''}</p>
         <p>{c.get('phone') or ''} | {c.get('email') or ''}</p>
-        <a href="https://social-plugins.line.me/lineit/share?url=http://localhost:8000/card/{slug}">
+        <a href="https://social-plugins.line.me/lineit/share?url={BASE_URL}/card/{slug}">
             <button>分享到LINE</button>
         </a>
     </body></html>
