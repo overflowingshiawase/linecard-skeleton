@@ -42,4 +42,4 @@
 
 ## Demo
 
-[[部署後的公開網址]([https://web-production-4fe72.up.railway.app/card/demo001](https://web-production-4fe72.up.railway.app/form))]
+[[部署後的公開網址](https://web-production-4fe72.up.railway.app/form)]
